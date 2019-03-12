@@ -5,6 +5,8 @@ import LogIn from './components/LogIn';
 import SignUp from './components/SignUp';
 import Routes from './components/Routes';
 import * as firebase from 'firebase';
+import Stops from './components/Stops'
+
 
 class App extends Component {
 
@@ -38,11 +40,14 @@ class App extends Component {
 
   state = {
     data : "This is the app Data",
-    page : 2
+    page : 2,
+    route : '123'
   }
   
-
-
+  sendRouteToStopsPage = (route)=>{
+    this.setState({route:route});
+    window.localStorage.setItem('route', route);
+  }
 
   render() {
 
@@ -57,7 +62,10 @@ class App extends Component {
               () => <SignUp setPage = {this.setPage} data = {this.state.data}/>
             }/>
             <Route path = '/routes' render = {
-              () => <Routes logged = {this.state.page} data = {this.state.data}/>
+              () => <Routes logged = {this.state.page} sendRouteToStopsPage = {this.sendRouteToStopsPage} data = {this.state.data}/>
+            }/>
+            <Route path = '/stops' render = {
+              () => <Stops logged = {this.state.page} route = {this.getRoute}/>
             }/>
             <Route render = {
               () => <h1>Page Not Found</h1>

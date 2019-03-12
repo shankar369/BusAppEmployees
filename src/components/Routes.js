@@ -4,7 +4,6 @@ import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import * as firebase from 'firebase';
 import ReactDOM from 'react-dom';
 import {Redirect,withRouter,BrowserRouter,HashRouter,Switch,Route} from 'react-router-dom';
-import Stops from './Stops'
 
 
 export class Routes extends Component {
@@ -24,39 +23,56 @@ export class Routes extends Component {
         //   };
         //   firebase.initializeApp(config);
 
-        this.updated = 0;
+        // this.updated = 0;
 
-        console.log("In constructor ",this.state);
-        
-     
+        // console.log("In constructor ",this.state);
+        let dbDate = firebase.database().ref().child('date');
+        dbDate.on('value',snap =>{
+            console.log("snap date :",snap.val());
+            this.fdate = snap.val();    
+        })
+
+    }
+
+    resetStops = () => {
+        Object.keys(this.state).map(route =>{
+            Object.keys(this.state[route]).map(stop =>{
+                firebase.database().ref('Busses/' + route +'/'+stop).set('---');
+            })
+        })
+        firebase.database().ref('date').set(this.getToday());
     }
 
 
-    
+    getToday = () =>{
+        let date = new Date();
+        return date.getFullYear().toString()+'-'+date.getDate().toString()+'-'+date.getMonth().toString()
+    }
     
     componentDidMount = () => {
+
+        console.log("date is : ",this.date);
         this.dbref = firebase.database().ref().child('Busses');
         this.dbref.on('value', snap => {
             let shuttles = snap.val();
             this.setState(shuttles);
-            if(this.updated === 1)
-              this.changeColor();
-            this.componentDidUpdate();
-            console.log("State",this.state);
-            console.log("Busses",snap.val());
+            // if(this.updated === 1)
+            //   this.changeColor();
+            // //this.componentDidUpdate();
+            // console.log("State",this.state);
+            // console.log("Busses",snap.val());
+            console.log("Firebase Date : ",this.fdate,"today : ",this.getToday(),'\n',this.state);
+            if(this.fdate !== this.getToday()){
+                if(Object.keys(this.state).length !== 0){
+                    console.log("calling reset ...");
+                    this.resetStops();
+                }
+            }
+            
         });
         
     }
-
-
-    componentWillReceiveProps = () => {
-        this.changeColor();
-    }
     
-
-
-
-
 
     state = { 
         
@@ -175,32 +191,35 @@ export class Routes extends Component {
 
     showStopsList = (route) =>{
        
-        var stopsList = Object.keys(this.state[route]).map( stop =>{
+        // var stopsList = Object.keys(this.state[route]).map( stop =>{
             
-            console.log(stop);
-            return(
-                <div className = "list-item-route" >
+        //     console.log(stop);
+        //     return(
+        //         <div className = "list-item-route" >
                 
-                        <li className="text-center list-group-item d-flex justify-content-between align-items-center route-list-item m-1" key = {Object.toString(Math.random)} id = {route+stop}>                      
-                        <b>{stop}</b>
+        //                 <li className="text-center list-group-item d-flex justify-content-between align-items-center route-list-item m-1" key = {Object.toString(Math.random)} id = {route+stop}>                      
+        //                 <b>{stop}</b>
                         
                        
-                        {/* <div className="form-check">
-                            <input onChange = {()=> this.makeCheked(route,stop)} className="form-check-input" type="checkbox" value="" id= {route+stop+"defaultCheck1"} />
-                            <label className="form-check-label" htmlFor= {route+stop+"defaultCheck1"} >
-                                Reached
-                            </label>
+        //                 {/* <div className="form-check">
+        //                     <input onChange = {()=> this.makeCheked(route,stop)} className="form-check-input" type="checkbox" value="" id= {route+stop+"defaultCheck1"} />
+        //                     <label className="form-check-label" htmlFor= {route+stop+"defaultCheck1"} >
+        //                         Reached
+        //                     </label>
 
-                        </div> */}
-                        </li>
+        //                 </div> */}
+        //                 </li>
                
-                </div>
-            )
-        });
+        //         </div>
+        //     )
+        // });
         
 
-        ReactDOM.render(stopsList, document.getElementById('stops-list'+route));
-        this.makeCheked(route);
+        // ReactDOM.render(stopsList, document.getElementById('stops-list'+route));
+        // this.makeCheked(route);
+
+        this.props.sendRouteToStopsPage(route);
+        this.props.history.push('/stops');
         
         // this.changeColor();
         // Object.keys(this.state[route]).map( stop =>{
@@ -221,51 +240,51 @@ export class Routes extends Component {
         // this.props.history.push('/routes/stops')
     }
 
-    changeColor(){
-        Object.keys(this.state).map(route =>{
-            Object.keys(this.state[route]).map(stop =>{
-                if(this.state[route][stop] === 1){
-                    console.log("error at :",route,stop)
-                    console.log(document.getElementById(route+stop))
+    // changeColor(){
+    //     Object.keys(this.state).map(route =>{
+    //         Object.keys(this.state[route]).map(stop =>{
+    //             if(this.state[route][stop] === 1){
+    //                 console.log("error at :",route,stop)
+    //                 console.log(document.getElementById(route+stop))
                                     
-                    }
-                else{
-                    console.log("error at :",route,stop)
-                    console.log(document.getElementById(route+stop))
+    //                 }
+    //             else{
+    //                 console.log("error at :",route,stop)
+    //                 console.log(document.getElementById(route+stop))
                                                  
-                }
-            })
-        })
-    }
+    //             }
+    //         })
+    //     })
+    // }
 
 
-    makeCheked(route) {
-        // if(document.getElementById(route+stop+"defaultCheck1").checked === true){
-        //     firebase.database().ref('Busses/' + route +'/'+stop).set(1);
-        //     document.getElementById(route+stop).style.backgroundColor = "green";
-        // }
-        // else{
-        //     firebase.database().ref('Busses/' + route +'/'+stop).set(0);
-        //     document.getElementById(route+stop).style.backgroundColor = "white";
-        // }
+    // makeCheked(route) {
+    //     if(document.getElementById(route+stop+"defaultCheck1").checked === true){
+    //         firebase.database().ref('Busses/' + route +'/'+stop).set(1);
+    //         document.getElementById(route+stop).style.backgroundColor = "green";
+    //     }
+    //     else{
+    //         firebase.database().ref('Busses/' + route +'/'+stop).set(0);
+    //         document.getElementById(route+stop).style.backgroundColor = "white";
+    //     }
         
-        Object.keys(this.state[route]).map( stop => {
+    //     Object.keys(this.state[route]).map( stop => {
             
-               if(this.state[route][stop] === 1){
+    //            if(this.state[route][stop] === 1){
    
-                   //document.getElementById(route+stop+"defaultCheck1").checked = true;
-                   document.getElementById(route+stop).style.backgroundColor = "green";
+    //                document.getElementById(route+stop+"defaultCheck1").checked = true;
+    //                document.getElementById(route+stop).style.backgroundColor = "green";
                    
-               }
-               else{
+    //            }
+    //            else{
                 
-                                //document.getElementById(route+stop+"defaultCheck1").checked = true;
-                                document.getElementById(route+stop).style.backgroundColor = "white";
+    //                             document.getElementById(route+stop+"defaultCheck1").checked = false;
+    //                             document.getElementById(route+stop).style.backgroundColor = "white";
                                 
-              }
+    //           }
                           
-           })
-      }
+    //        })
+    //   }
 
 
 
@@ -283,7 +302,7 @@ export class Routes extends Component {
     
                         <div className = "routes-list">
     
-                            <h1>Routes List</h1>
+                            <h1 className = "display-4">Routes List</h1>
                                 <ul className="list-group" id = "shuttle-list">
                                 </ul>
                             </div>
